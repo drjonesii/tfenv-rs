@@ -27,7 +27,7 @@ jobs:
           profile: minimal
 
       - name: Build release
-        run: cargo build --release
+        run: cargo clean; cargo build --release
 
       - name: Package artifact (Linux/macOS)
         id: package_unix
