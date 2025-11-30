@@ -24,9 +24,13 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@1.75
-      - name: Clear cargo build cache
-        run: rm -rf target
+      - name: Set correct target and clean environment
         shell: bash
+        run: |
+          rustup show
+          rustup target list --installed
+          rm -rf ~/.cargo/.package-cache
+          rm -rf ./target
       - name: Build release
         run: cargo build --release
 
