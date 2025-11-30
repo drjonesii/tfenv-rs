@@ -70,14 +70,15 @@ jobs:
         run: cargo build --release
 
       - name: Package artifact (Linux/macOS)
-        id: package
+        id: package_unix
         if: matrix.os != 'windows-latest'
         run: |
           FILE=tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
           tar -czf "$FILE" -C target/release tfenv-rs
           echo "asset_path=$FILE" >> $GITHUB_OUTPUT
+
       - name: Package artifact (Windows)
-        id: package
+        id: package_windows
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
@@ -86,7 +87,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "asset_path=$out"
 
       - name: Generate SHA256 checksum (Linux/macOS)
-        id: checksum
+        id: checksum_unix
         if: matrix.os != 'windows-latest'
         run: |
           FILE=tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
@@ -94,7 +95,7 @@ jobs:
           echo "checksum_path=$FILE.sha256" >> $GITHUB_OUTPUT
 
       - name: Generate SHA256 checksum (Windows)
-        id: checksum
+        id: checksum_windows
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
@@ -103,18 +104,38 @@ jobs:
           $hash.Hash | Out-File -FilePath "${out}.sha256" -Encoding ascii
           Add-Content -Path $env:GITHUB_OUTPUT -Value "checksum_path=${out}.sha256"
 
-      - name: Upload release asset
+      - name: Upload release asset (Linux/macOS)
+        if: matrix.os != 'windows-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ${{ steps.package.outputs.asset_path }}
+          asset_path: ${{ steps.package_unix.outputs.asset_path }}
           asset_name: tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}
           asset_content_type: application/octet-stream
 
-      - name: Upload checksum file
+      - name: Upload release asset (Windows)
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ${{ steps.checksum.outputs.checksum_path }}
+          asset_path: ${{ steps.package_windows.outputs.asset_path }}
+          asset_name: tfenv-rs-${{ github.ref_name }}-windows
+          asset_content_type: application/octet-stream
+
+      - name: Upload checksum file (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ${{ steps.checksum_unix.outputs.checksum_path }}
           asset_name: tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.sha256
+          asset_content_type: text/plain
+
+      - name: Upload checksum file (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ${{ steps.checksum_windows.outputs.checksum_path }}
+          asset_name: tfenv-rs-${{ github.ref_name }}-windows.sha256
           asset_content_type: text/plain
