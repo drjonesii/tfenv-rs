@@ -1,7 +1,6 @@
 # Rust
 /target/
-# Cargo.lock may be checked in for binaries; ignore everywhere for now
-**/Cargo.lock
+# Cargo.lock should be checked in for binaries
 
 # Editor directories and files
 .vscode/
