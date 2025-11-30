@@ -28,10 +28,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Show Rust version
         run: rustc --version && cargo --version
