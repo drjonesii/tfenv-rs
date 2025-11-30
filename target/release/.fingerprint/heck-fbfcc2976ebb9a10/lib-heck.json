@@ -1,1 +1,0 @@
-{"rustc":17273738520181233363,"features":"[]","declared_features":"[]","target":17886154901722686619,"profile":1369601567987815722,"path":2774950526271795886,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"release\\.fingerprint\\heck-fbfcc2976ebb9a10\\dep-lib-heck","checksum":false}}],"rustflags":["-l","user32","-l","kernel32"],"config":2069994364910194474,"compile_kind":0}

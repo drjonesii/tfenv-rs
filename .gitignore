@@ -1,0 +1,12 @@
+# Rust
+/target/
+# Cargo.lock may be checked in for binaries; ignore everywhere for now
+**/Cargo.lock
+
+# Editor directories and files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
