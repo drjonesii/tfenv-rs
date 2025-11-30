@@ -25,7 +25,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -37,29 +37,7 @@ jobs:
         run: rustc --version && cargo --version
 
       - name: Build (debug)
-        run: cargo build --verbose
+        run: cargo clean; cargo build --verbose
 
-      - name: Run tests
-        run: cargo test --verbose
-name: CI
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - name: Build
-        run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
