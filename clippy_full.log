@@ -1,0 +1,16 @@
+    Blocking waiting for file lock on build directory
+   Compiling ring v0.17.14
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling bzip2-sys v0.1.13+1.0.8
+   Compiling rustls v0.21.12
+    Checking bzip2 v0.4.4
+    Checking sct v0.7.1
+    Checking rustls-webpki v0.101.7
+    Checking tokio-rustls v0.24.1
+    Checking hyper-rustls v0.24.2
+    Checking reqwest v0.11.27
+   Compiling zstd-safe v5.0.2+zstd.1.5.2
+    Checking zstd v0.11.2+zstd.1.5.2
+    Checking zip v0.6.6
+    Checking tfenv-rs v0.1.0 (C:\Users\grego\source\repos\tfenv-rs)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 21.44s

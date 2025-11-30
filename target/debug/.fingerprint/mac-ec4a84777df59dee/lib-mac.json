@@ -1,0 +1,1 @@
+{"rustc":17273738520181233363,"features":"[]","declared_features":"[]","target":4071246351868317718,"profile":11876527447619405325,"path":10701311964917208380,"deps":[],"local":[{"CheckDepInfo":{"dep_info":"debug\\.fingerprint\\mac-ec4a84777df59dee\\dep-lib-mac","checksum":false}}],"rustflags":["-l","user32","-l","kernel32"],"config":2069994364910194474,"compile_kind":0}

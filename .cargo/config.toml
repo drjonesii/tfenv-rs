@@ -1,0 +1,6 @@
+[build]
+# Use the native-tls feature with rustls as fallback
+rustflags = ["-l", "user32", "-l", "kernel32"]
+
+[profile.dev]
+opt-level = 1

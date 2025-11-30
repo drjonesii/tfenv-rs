@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  prepare:
+    name: Prepare release and generate changelog
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tags
+        run: git fetch --prune --unshallow || true; git fetch --tags
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          set -e
+          TAG=${{ github.ref_name }}
+          PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+          if [ -n "$PREV_TAG" ]; then
+            BODY=$(git log --pretty=format:'- %s (%an)' "$PREV_TAG..HEAD")
+          else
+            BODY=$(git log --pretty=format:'- %s (%an)' --no-merges)
+          fi
+          if [ -z "$BODY" ]; then
+            BODY="(no notable changes)"
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+  build-and-upload:
+    name: Build and upload artifacts
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Package artifact (Linux/macOS)
+        id: package
+        if: matrix.os != 'windows-latest'
+        run: |
+          FILE=tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
+          tar -czf "$FILE" -C target/release tfenv-rs
+          echo "asset_path=$FILE" >> $GITHUB_OUTPUT
+      - name: Package artifact (Windows)
+        id: package
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $out = "tfenv-rs-${{ github.ref_name }}-windows.zip"
+          Compress-Archive -Path "target\release\tfenv-rs.exe" -DestinationPath $out -Force
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "asset_path=$out"
+
+      - name: Generate SHA256 checksum (Linux/macOS)
+        id: checksum
+        if: matrix.os != 'windows-latest'
+        run: |
+          FILE=tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.tar.gz
+          sha256sum "$FILE" | awk '{print $1}' > "$FILE.sha256"
+          echo "checksum_path=$FILE.sha256" >> $GITHUB_OUTPUT
+
+      - name: Generate SHA256 checksum (Windows)
+        id: checksum
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $out = "tfenv-rs-${{ github.ref_name }}-windows.zip"
+          $hash = Get-FileHash -Algorithm SHA256 $out
+          $hash.Hash | Out-File -FilePath "${out}.sha256" -Encoding ascii
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "checksum_path=${out}.sha256"
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ${{ steps.package.outputs.asset_path }}
+          asset_name: tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload checksum file
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ${{ steps.checksum.outputs.checksum_path }}
+          asset_name: tfenv-rs-${{ github.ref_name }}-${{ matrix.os }}.sha256
+          asset_content_type: text/plain
